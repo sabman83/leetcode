@@ -47,7 +47,6 @@ def alt_print_tree arr
   end
 end
 
-
 def invert_tree_sol root
   binding.pry
   return nil if (root == nil)
@@ -207,13 +206,3 @@ def copy_node(n, created)
   end
   created[n.value]
 end
-
-
-
-
-
-
-
-
-
-
