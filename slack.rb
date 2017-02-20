@@ -30,7 +30,7 @@ $alpha_sorter = Proc.new do |a1, a2|
 end
 
 $number_sorter = Proc.new do |n1, n2|
-  n1.tr(',','').to_f <=> n2.tr(',','').to_f #if it is a number like "20,000", I remove the comma so that ruby can convert it to the correct float value
+  n1.tr(',','').to_f <=> n2.tr(',','').to_f #removes the comma for numbers like 20,000 so that ruby can convert it to the correct float value
 end
 
 def sort_string input
@@ -127,8 +127,8 @@ describe '#sort_string' do
   end
 
   it 'sorts an array of strings of different types' do
-    input = ["1", "banana" , "8", "3", "apple"]
-    expect(sort_string input).to eq  ["apple", "banana",  "1", "3", "8"]
+    input = ["1", "banana" , "8,000", "3", "apple"]
+    expect(sort_string input).to eq  ["apple", "banana",  "1", "3", "8,000"]
   end
 
   it 'sorts an empty and single element array' do
