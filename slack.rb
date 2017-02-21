@@ -6,9 +6,10 @@
 require 'rspec'
 require 'Date'
 
-#My approach:
+#
+# My approach:
 #  - A string can have alpha, numeric, date or special characters as the prefix
-#  - I use a hash to store strings for each type of prefix except for special characters.
+#  - I use a hash to store prefixes for each type except for special characters.
 #    The key is the prefix and the value is an array of suffixes.
 #    For strings that are purely of one type, I map the whole string as the prefix and add an empty string as the suffix.
 #  - All strings starting with special characters are added to an array and sorted separately. While we can consider special cases like hyphens to split the string on and peform
@@ -17,18 +18,25 @@ require 'Date'
 #  - The array of suffixes are sorted recursively. The prefixes are sorted separately and then concatenated with the sorted suffixes.
 #  - The order of strings will be dates, alphas , numerics followed by special characters.
 
-#NOTES:
-# - I assume that numbers use comma for separators and dot for decimal. The worting wouldn't work if numbers use a European format where a dot could be used as a separator.
-# - Dates can only be in the format of yyyy/mm/dd or dd/mm/yyyy (with '/'or '-' as valid separators). Any other formats are considered as strings with numeric prefixes.
-# - The number regular expression enforces a use of at least one number before the decimal point. So '.2' will not be considered as a number.
-# - When trying to sort multi-format strings in the order they arrive, they don't always work as expected. For example, for versioning, the numbers after the dots should be considered
-#   as separate numbers. But my implementation, will consider 10.10 as the number. So 10.4 will be sorted later than 10.10 if it is a part of a version string. As mentioned earlier,
-#   we could add special cases to handle versioning.
-# - The regular expressions used needs some thorough test cases. For the sake of brevity, I have covered only few of the test cases. I could also look for some open source libraries that have already implemented this.
+#
+# NOTES:
+#  - I assume that numbers use comma for separators and dot for decimal. The sorting wouldn't work if numbers use an European format where a dot could be used as a separator.
+#  - Dates can only be in the format of yyyy/mm/dd or dd/mm/yyyy (with '/'or '-' as valid separators). Any other formats are considered as strings with numeric prefixes.
+#  - The number regular expression enforces the use of at least one number before the decimal point. So '.2' will not be considered as a number.
+#  - Sorting version strings does not work as expected. For example, for versioning, the numbers after the dots should be considered
+#    as separate numbers. But my implementation, will consider 10.10 as the number. So 10.4 will be sorted later than 10.10. As mentioned earlier,
+#    we could add special cases to handle versioning.
+#  - The regular expressions used needs some thorough test cases. For the sake of brevity, I have covered only few of the test cases.
+#    I could also look for some open source libraries that have already implemented this.
+
 
 
 #Though using global variables is not advisable, using these for the sake of this assignment.
 #Ideally, I would define these in a class.
+
+#
+# Regular Expressions
+#
 $valid_number_format = /(-)?\d+(,\d+)*(\.\d+(e\d+)?)?/
 $number_regex = /^#{$valid_number_format}$/
 $numeric_prefix_regex = /^(#{$valid_number_format})(.+)$/
@@ -41,7 +49,9 @@ $date_format = /((\d{4}[\\\/-]{1}\d{1,2}[\\\/-]{1}\d{1,2})|(\d{1,2}[\\\/-]{1}\d{
 $date_regex = /^#{$date_format}$/
 $date_prefix_regex = /^#{$date_format}([^0-9].*)$/
 
-#using custom sorters for maintaining the original string format
+#
+# Custom Sorters
+#
 $date_sorter = Proc.new do |d1, d2|
   Date.parse(d1) <=> Date.parse(d2)
 end
@@ -86,7 +96,7 @@ def sort_strings input
     end
   end
 
-  #using custom sorters for maintaining the original string format
+  #using custom sorters, to avoid casting and maintaining the original string format
   sorted_date_prefixes = sort_prefix_concat_suffix( date_prefixes, $date_sorter )
   sorted_alpha_prefixes = sort_prefix_concat_suffix( alpha_prefixes, $alpha_sorter )
   sorted_numerics_prefixes = sort_prefix_concat_suffix( numeric_prefixes, $number_sorter )
@@ -96,7 +106,10 @@ def sort_strings input
   return sorted_date_prefixes + sorted_alpha_prefixes + sorted_numerics_prefixes + others
 end
 
-#Utility Methods
+#
+# Utility Methods
+#
+
 def map_prefix_to_suffix hash_map, prefix, suffix
   if hash_map[prefix].nil?
     hash_map[prefix] = [suffix]
@@ -106,9 +119,9 @@ def map_prefix_to_suffix hash_map, prefix, suffix
 end
 
 # Sorts the keys in the hash using the sorter provided and
-# Sorts the array of suffixes for each using the sort_strings method.
+# Sorts the array of suffixes for each key using the sort_strings method.
 # After the sorting is complete, the prefix key is concatenated with each suffix and added to an array.
-# The array return containts the strings in the sorted order
+# The array returned containts the strings in the sorted order
 #
 # For Example:
 #   > hash_map = {"b" => ["c", "d"], "a"=> ["b","d"]}
@@ -142,6 +155,10 @@ def valid_date? str
   end
 end
 
+
+#
+# Tests
+#
 describe '#sort_strings' do
   it 'sorts an empty and single element array' do
     input = []
@@ -195,7 +212,7 @@ describe '#sort_strings' do
     input = ["a2016-10-12ab", "a2013-02-29ac", "b2017-01-01ad", "a2016-10-10ad",  "a2016-10-10ab"]
     expect(sort_strings input).to eq ["a2016-10-10ab", "a2016-10-10ad", "a2016-10-12ab", "a2013-02-29ac", "b2017-01-01ad"]
 
-    input = ["-1", "2", ".2", "10", "-2.4", ".2e1"]
+    input = ["-1", "2", ".2", "10", "-2.4", ".2e1"] #.2 is not considered a number and is considered as a string with special character as a the prefix
     expect(sort_strings input).to eq ["-2.4", "-1", "2", "10", ".2", ".2e1"]
   end
 
