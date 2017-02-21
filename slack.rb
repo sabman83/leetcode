@@ -21,6 +21,9 @@ require 'Date'
 # - I assume that numbers use comma for separators and dot for decimal. The worting wouldn't work if numbers use a European format where a dot could be used as a separator.
 # - Dates can only be in the format of yyyy/mm/dd or dd/mm/yyyy (with '/'or '-' as valid separators). Any other formats are considered as strings with numeric prefixes.
 # - The number regular expression enforces a use of at least one number before the decimal point. So '.2' will not be considered as a number.
+# - When trying to sort multi-format strings in the order they arrive, they don't always work as expected. For example, for versioning, the numbers after the dots should be considered
+#   as separate numbers. But my implementation, will consider 10.10 as the number. So 10.4 will be sorted later than 10.10 if it is a part of a version string. As mentioned earlier,
+#   we could add special cases to handle versioning.
 # - The regular expressions used needs some thorough test cases. For the sake of brevity, I have covered only few of the test cases. I could also look for some open source libraries that have already implemented this.
 
 
@@ -186,8 +189,8 @@ describe '#sort_strings' do
     input =  ["Apple", "bacon", "Apple", "android2.2", "2", "1watermelon"]
     expect(sort_strings input).to eq ["android2.2", "Apple", "Apple", "bacon", "1watermelon", "2"]
 
-    input = ["OS X 10 beta: Kodiak", "OS X 10.11: El Capitan", "OS X 10.4.4 Tiger", "OS X 10.8 Mountain Lion", "OS X 10.6 Snow Leopard"]
-    expect(sort_strings input).to eq ["OS X 10 beta: Kodiak", "OS X 10.11: El Capitan", "OS X 10.4.4 Tiger", "OS X 10.6 Snow Leopard", "OS X 10.8 Mountain Lion"]
+    input = ["OS X 10 beta: Kodiak", "OS X 10.11: El Capitan", "OS X 10.4 Tiger", "OS X 10.8 Mountain Lion", "OS X 10.6 Snow Leopard"]
+    expect(sort_strings input).to eq ["OS X 10 beta: Kodiak", "OS X 10.11: El Capitan", "OS X 10.4 Tiger", "OS X 10.6 Snow Leopard", "OS X 10.8 Mountain Lion"]
 
     input = ["a2016-10-12ab", "a2013-02-29ac", "b2017-01-01ad", "a2016-10-10ad",  "a2016-10-10ab"]
     expect(sort_strings input).to eq ["a2016-10-10ab", "a2016-10-10ad", "a2016-10-12ab", "a2013-02-29ac", "b2017-01-01ad"]
