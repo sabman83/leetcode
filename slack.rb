@@ -4,7 +4,7 @@
 # > rspec file_name.rb
 #
 require 'rspec'
-require 'Date'
+require 'date'
 
 #
 # My approach:
